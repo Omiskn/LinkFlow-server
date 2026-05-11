@@ -1,11 +1,40 @@
+import type { users } from "../generated/prisma/client";
 import { userRepository } from "../repositories/user.repository";
 import { AppError } from "../errors/AppError";
 import { hashPassword, comparePassword } from "../utils/hash";
 import { generateToken } from "../utils/jwt";
 import { RegisterUserDTO } from "../types/user";
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function assertRegisterInput({ username, email, password }: RegisterUserDTO) {
+  if (
+    typeof username !== "string" ||
+    username.trim().length < 2 ||
+    username.length > 50
+  ) {
+    throw new AppError("Username must be between 2 and 50 characters", 400);
+  }
+  if (typeof email !== "string" || !EMAIL_RE.test(email.trim())) {
+    throw new AppError("Invalid email address", 400);
+  }
+  if (typeof password !== "string" || password.length < 10) {
+    throw new AppError("Password must be at least 10 characters", 400);
+  }
+}
+
+function toPublicUser(user: users) {
+  const { password_hash: _omit, ...rest } = user;
+  return rest;
+}
+
 export const userService = {
-  register: async ({ username, email, password }: RegisterUserDTO) => {
+  register: async (input: RegisterUserDTO) => {
+    assertRegisterInput(input);
+    const username = input.username.trim();
+    const email = input.email.trim().toLowerCase();
+    const password = input.password;
+
     const existingUser = await userRepository.findByEmail(email);
 
     if (existingUser) {
@@ -24,13 +53,17 @@ export const userService = {
     const token = generateToken(user.user_id);
 
     return {
-      user,
+      user: toPublicUser(user),
       token,
     };
   },
 
   login: async (email: string, password: string) => {
-    const user = await userRepository.findByEmail(email);
+    if (typeof email !== "string" || typeof password !== "string") {
+      throw new AppError("Invalid credentials", 401);
+    }
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await userRepository.findByEmail(normalizedEmail);
 
     if (!user || !user.password_hash) {
       throw new AppError("Invalid credentials", 401);
@@ -38,7 +71,7 @@ export const userService = {
 
     const isPasswordCorrect = await comparePassword(
       password,
-      user.password_hash
+      user.password_hash,
     );
 
     if (!isPasswordCorrect) {
@@ -48,7 +81,7 @@ export const userService = {
     const token = generateToken(user.user_id);
 
     return {
-      user,
+      user: toPublicUser(user),
       token,
     };
   },

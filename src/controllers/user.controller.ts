@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { userService } from "../services/user.service";
 import { RegisterUserDTO } from "../types/user";
+import { sendSuccess } from "../utils/apiResponse";
 
 export const userController = {
   register: async (req: Request, res: Response) => {
@@ -9,7 +10,8 @@ export const userController = {
 
     const result = await userService.register(user);
 
-    res.status(201).json(result);
+    sendSuccess(res, "User Created Successfully", result, 201);
+    // res.status(201).json(result);
   },
 
   login: async (req: Request, res: Response) => {
@@ -17,6 +19,7 @@ export const userController = {
 
     const result = await userService.login(email, password);
 
-    res.status(200).json(result);
+    sendSuccess(res, "Logined", result, 200);
+    // res.status(200).json(result);
   },
 };

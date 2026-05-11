@@ -1,30 +1,52 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-import { env } from "../config/env";
+import { JwtPayload } from "jsonwebtoken";
+import { verifyAccessToken } from "../utils/jwt";
+
+const parseBearerToken = (authorization: string | undefined): string | null => {
+  if (!authorization || typeof authorization !== "string") {
+    return null;
+  }
+  const match = /^Bearer\s+(.+)$/i.exec(authorization.trim());
+  if (!match?.[1]) {
+    return null;
+  }
+  const token = match[1].trim();
+  return token.length > 0 ? token : null;
+};
 
 export const authMiddleware = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
-  const authHeader = req.headers.authorization;
+  const token = parseBearerToken(req.headers.authorization);
 
-  if (!authHeader) {
+  if (!token) {
     return res.status(401).json({
+      success: false,
       message: "Unauthorized",
     });
   }
 
-  const token = authHeader.split(" ")[1];
-
   try {
-    const decoded = jwt.verify(token, env.JWT_SECRET);
+    const decoded = verifyAccessToken(token) as JwtPayload;
+    const userId = Number(decoded.sub);
+    if (!Number.isInteger(userId) || userId < 1) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid token",
+      });
+    }
 
-    req.user = decoded;
+    req.user = {
+      userId,
+      jti: typeof decoded.jti === "string" ? decoded.jti : undefined,
+    };
 
     next();
-  } catch (error) {
+  } catch {
     return res.status(401).json({
+      success: false,
       message: "Invalid token",
     });
   }
