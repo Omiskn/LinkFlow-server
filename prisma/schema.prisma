@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model clicks {
+  click_id    Int       @id @default(autoincrement())
+  link_id     Int
+  clicked_at  DateTime? @default(now()) @db.Timestamp(6)
+  country     String?   @db.VarChar(100)
+  device_type String?   @db.VarChar(50)
+  browser     String?   @db.VarChar(50)
+  links       links     @relation(fields: [link_id], references: [link_id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model links {
+  link_id     Int       @id @default(autoincrement())
+  user_id     Int
+  title       String    @db.VarChar(100)
+  url         String
+  icon        String?   @db.VarChar(50)
+  link_type   String?   @default("custom") @db.VarChar(30)
+  is_active   Boolean?  @default(true)
+  position    Int?      @default(0)
+  click_count Int?      @default(0)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+  clicks      clicks[]
+  users       users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model user_settings {
+  setting_id    Int       @id @default(autoincrement())
+  user_id       Int       @unique
+  theme         String?   @default("light") @db.VarChar(20)
+  primary_color String?   @default("#000000") @db.VarChar(20)
+  font_style    String?   @default("Inter") @db.VarChar(50)
+  button_style  String?   @default("rounded") @db.VarChar(50)
+  background    String?   @default("solid") @db.VarChar(50)
+  language      String?   @default("en") @db.VarChar(10)
+  updated_at    DateTime? @default(now()) @db.Timestamp(6)
+  users         users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model users {
+  user_id       Int            @id @default(autoincrement())
+  username      String         @unique @db.VarChar(50)
+  email         String         @unique @db.VarChar(100)
+  password_hash String?
+  provider      String?        @default("local") @db.VarChar(20)
+  google_id     String?        @db.VarChar(100)
+  display_name  String?        @db.VarChar(100)
+  bio           String?
+  profile_image String?
+  is_verified   Boolean?       @default(false)
+  last_login_at DateTime?      @db.Timestamp(6)
+  created_at    DateTime?      @default(now()) @db.Timestamp(6)
+  updated_at    DateTime?      @default(now()) @db.Timestamp(6)
+  links         links[]
+  user_settings user_settings?
+}
