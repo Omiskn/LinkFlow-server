@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { env } from "../config/env";
+import { sendError } from "../utils/apiResponse";
 
 export const errorMiddleware = (
   err: { statusCode?: number; message?: string },
@@ -14,8 +15,12 @@ export const errorMiddleware = (
       ? "Internal Server Error"
       : err.message || "Internal Server Error";
 
-  res.status(statusCode).json({
-    success: false,
-    message,
-  });
+  console.log("hello from error middleware");
+
+  sendError(res, message, statusCode);
+
+  // res.status(statusCode).json({
+  //   success: false,
+  //   message,
+  // });
 };

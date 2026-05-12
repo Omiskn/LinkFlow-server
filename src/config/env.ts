@@ -14,6 +14,7 @@ const NODE_ENV = (process.env.NODE_ENV ?? "development").trim();
 const isProd = NODE_ENV === "production";
 
 const JWT_SECRET = requireString("JWT_SECRET", process.env.JWT_SECRET);
+
 if (JWT_SECRET.length < 32) {
   throw new Error(
     "JWT_SECRET must be at least 32 characters (256-bit minimum for HS256).",

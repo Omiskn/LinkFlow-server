@@ -1,15 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import { JwtPayload } from "jsonwebtoken";
 import { verifyAccessToken } from "../utils/jwt";
+import { sendError } from "../utils/apiResponse";
 
 const parseBearerToken = (authorization: string | undefined): string | null => {
-  if (!authorization || typeof authorization !== "string") {
-    return null;
-  }
+  if (!authorization || typeof authorization !== "string") return null;
+
   const match = /^Bearer\s+(.+)$/i.exec(authorization.trim());
-  if (!match?.[1]) {
-    return null;
-  }
+  if (!match?.[1]) return null;
+
   const token = match[1].trim();
   return token.length > 0 ? token : null;
 };
@@ -21,33 +20,25 @@ export const authMiddleware = (
 ) => {
   const token = parseBearerToken(req.headers.authorization);
 
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized",
-    });
-  }
+  if (!token) return sendError(res, "Unauthorized", 401);
 
   try {
     const decoded = verifyAccessToken(token) as JwtPayload;
     const userId = Number(decoded.sub);
-    if (!Number.isInteger(userId) || userId < 1) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid token",
-      });
-    }
+
+    if (!Number.isInteger(userId) || userId < 1)
+      return sendError(res, "Invalid token", 401);
 
     req.user = {
       userId,
       jti: typeof decoded.jti === "string" ? decoded.jti : undefined,
     };
 
+    console.log(req.user);
+
     next();
-  } catch {
-    return res.status(401).json({
-      success: false,
-      message: "Invalid token",
-    });
+  } catch (err) {
+    console.log(err);
+    return sendError(res, "Invalid token", 401);
   }
 };

@@ -4,7 +4,7 @@ import { env } from "../config/env";
 
 const signOptions: SignOptions = {
   algorithm: "HS256",
-  expiresIn: env.JWT_EXPIRES_IN,
+  expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"],
   issuer: env.JWT_ISSUER,
   audience: env.JWT_AUDIENCE,
 };
