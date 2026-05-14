@@ -4,6 +4,7 @@ import { AppError } from "../errors/AppError";
 import { hashPassword, comparePassword } from "../utils/hash";
 import { generateToken } from "../utils/jwt";
 import { RegisterUserDTO } from "../types/user";
+import { settingsService } from "./settings.service";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -50,6 +51,8 @@ export const userService = {
       display_name: username,
     });
 
+    await settingsService.ensureRow(user.user_id);
+
     const token = generateToken(user.user_id);
 
     return {
@@ -79,6 +82,8 @@ export const userService = {
     }
 
     const token = generateToken(user.user_id);
+
+    await settingsService.ensureRow(user.user_id);
 
     return {
       user: toPublicUser(user),

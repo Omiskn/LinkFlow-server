@@ -33,7 +33,7 @@ export function setupSecurityMiddleware(app: Express) {
 
 /** Limits brute-force attempts on login/register. */
 export const authRouteLimiter = rateLimit({
-  windowMs: 3 * 1000,
+  windowMs: 1000,
   limit: 1,
   standardHeaders: true,
   legacyHeaders: false,

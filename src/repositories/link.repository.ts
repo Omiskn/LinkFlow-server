@@ -53,4 +53,38 @@ export const linkRepositories = {
       },
     });
   },
+
+  /**
+   * Creates a clicks row and increments link.click_count atomically.
+   * Returns the link (with url) if active; otherwise null.
+   */
+  recordClickWithRow: async (
+    linkId: number,
+    meta: { country?: string; device_type?: string; browser?: string },
+  ) => {
+    return prisma.$transaction(async (tx) => {
+      const link = await tx.links.findFirst({
+        where: { link_id: linkId, is_active: true },
+      });
+      if (!link) {
+        return null;
+      }
+      await tx.clicks.create({
+        data: {
+          link_id: linkId,
+          country: meta.country,
+          device_type: meta.device_type,
+          browser: meta.browser,
+        },
+      });
+      await tx.links.update({
+        where: { link_id: linkId },
+        data: {
+          click_count: { increment: 1 },
+          updated_at: new Date(),
+        },
+      });
+      return link;
+    });
+  },
 };

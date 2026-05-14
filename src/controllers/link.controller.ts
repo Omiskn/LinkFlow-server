@@ -48,7 +48,7 @@ export const linkController = {
 
   recordClick: async (req: Request, res: Response) => {
     const linkId = requireLinkIdParam(req);
-    const result = await linkService.recordClick(linkId);
+    const result = await linkService.recordClick(linkId, req.body);
     sendSuccess(res, "Click recorded.", result, 200);
   },
 };

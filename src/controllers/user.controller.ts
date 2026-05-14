@@ -11,7 +11,6 @@ export const userController = {
     const result = await userService.register(user);
 
     sendSuccess(res, "User Created Successfully", result, 201);
-    // res.status(201).json(result);
   },
 
   login: async (req: Request, res: Response) => {
@@ -20,6 +19,5 @@ export const userController = {
     const result = await userService.login(email, password);
 
     sendSuccess(res, "Logined", result, 200);
-    // res.status(200).json(result);
   },
 };

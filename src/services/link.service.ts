@@ -3,6 +3,7 @@ import type { links } from "../generated/prisma/client";
 import { Prisma } from "../generated/prisma/client";
 import { linkRepositories } from "../repositories/link.repository";
 import { LinkDTO, UpdateLinkDTO } from "../types/link";
+import type { RecordClickMetaDTO } from "../types/click";
 
 const TITLE_MIN = 2;
 const TITLE_MAX = 100;
@@ -91,6 +92,24 @@ function toPublicLink(link: links) {
   return rest;
 }
 
+function sanitizeClickMeta(body: unknown): RecordClickMetaDTO {
+  if (!body || typeof body !== "object") {
+    return {};
+  }
+  const o = body as Record<string, unknown>;
+  const clip = (v: unknown, max: number): string | undefined => {
+    if (typeof v !== "string") return undefined;
+    const t = v.trim();
+    if (!t) return undefined;
+    return t.slice(0, max);
+  };
+  return {
+    country: clip(o.country, 100),
+    device_type: clip(o.device_type, 50),
+    browser: clip(o.browser, 50),
+  };
+}
+
 async function requireOwnedLink(linkId: number, userId: number) {
   if (!Number.isInteger(linkId) || linkId < 1) {
     throw new AppError("Invalid link id", 400);
@@ -154,13 +173,19 @@ export const linkService = {
     await linkRepositories.deleteLink(linkId);
   },
 
-  /** Public: increments click_count for an active link (e.g. profile page analytics). */
-  recordClick: async (linkId: number) => {
-    const link = await linkRepositories.findActiveById(linkId);
+  /**
+   * Public: inserts a clicks row, increments link.click_count (same transaction),
+   * optional body: country, device_type, browser (trimmed / max lengths).
+   */
+  recordClick: async (linkId: number, body: unknown) => {
+    if (!Number.isInteger(linkId) || linkId < 1) {
+      throw new AppError("Invalid link id", 400);
+    }
+    const meta = sanitizeClickMeta(body);
+    const link = await linkRepositories.recordClickWithRow(linkId, meta);
     if (!link) {
       throw new AppError("Link not found", 404);
     }
-    await linkRepositories.incrementClickCount(linkId);
     return { url: link.url };
   },
 };
