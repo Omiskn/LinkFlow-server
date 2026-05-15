@@ -20,4 +20,21 @@ export const userController = {
 
     sendSuccess(res, "Logined", result, 200);
   },
+
+  verifyEmail: async (req: Request, res: Response) => {
+    const { token } = req.query;
+
+    const result = await userService.verifyEmail(String(token));
+
+    sendSuccess(res, "Email Verified", result, 200);
+  },
+
+  getMe: async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
+    if (!userId) return;
+
+    const result = await userService.getMe(userId);
+
+    sendSuccess(res, "user Fetched successfully", result, 200);
+  },
 };

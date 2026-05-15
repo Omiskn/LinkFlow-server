@@ -18,6 +18,7 @@ export const errorMiddleware = (
   console.log("hello from error middleware");
 
   sendError(res, message, statusCode);
+  console.log(message);
 
   // res.status(statusCode).json({
   //   success: false,

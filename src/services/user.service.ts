@@ -6,6 +6,10 @@ import { generateToken } from "../utils/jwt";
 import { RegisterUserDTO } from "../types/user";
 import { settingsService } from "./settings.service";
 
+import crypto from "crypto";
+import { emailService } from "./email.service";
+import { env } from "../config/env";
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function assertRegisterInput({ username, email, password }: RegisterUserDTO) {
@@ -32,9 +36,9 @@ function toPublicUser(user: users) {
 export const userService = {
   register: async (input: RegisterUserDTO) => {
     assertRegisterInput(input);
+
     const username = input.username.trim();
     const email = input.email.trim().toLowerCase();
-    const password = input.password;
 
     const existingUser = await userRepository.findByEmail(email);
 
@@ -42,22 +46,32 @@ export const userService = {
       throw new AppError("Email already exists", 400);
     }
 
-    const hashedPassword = await hashPassword(password);
+    const hashedPassword = await hashPassword(input.password);
+
+    // 🔑 generate verification token
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+
+    const verificationExpires = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
 
     const user = await userRepository.create({
       username,
       email,
       password_hash: hashedPassword,
       display_name: username,
+      verification_token: verificationToken,
+      verification_expires: verificationExpires,
+      is_verified: false,
     });
 
     await settingsService.ensureRow(user.user_id);
 
-    const token = generateToken(user.user_id);
+    // 🔗 link
+    const verifyLink = `${env.FRONTEND_URL}/verify_email?token=${verificationToken}`;
+
+    await emailService.sendVerificationEmail(email, verifyLink);
 
     return {
-      user: toPublicUser(user),
-      token,
+      message: "User created. Please verify your email.",
     };
   },
 
@@ -81,6 +95,10 @@ export const userService = {
       throw new AppError("Invalid credentials", 401);
     }
 
+    if (!user.is_verified) {
+      throw new AppError("Please verify your email first", 403);
+    }
+
     const token = generateToken(user.user_id);
 
     await settingsService.ensureRow(user.user_id);
@@ -88,6 +106,36 @@ export const userService = {
     return {
       user: toPublicUser(user),
       token,
+    };
+  },
+
+  getMe: async (userId: number) => {
+    const user = await userRepository.findById(userId);
+
+    if (!user) throw new AppError("Invalid token", 400);
+
+    return { user: toPublicUser(user) };
+  },
+
+  verifyEmail: async (token: string) => {
+    const user = await userRepository.findByVerificationToken(token);
+
+    if (!user) {
+      throw new AppError("Invalid token", 400);
+    }
+
+    if (user.verification_expires && user.verification_expires < new Date()) {
+      throw new AppError("Token expired", 400);
+    }
+
+    await userRepository.updateById(user.user_id, {
+      is_verified: true,
+      verification_token: null,
+      verification_expires: null,
+    });
+
+    return {
+      message: "Email verified successfully",
     };
   },
 };

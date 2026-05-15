@@ -19,4 +19,17 @@ export const userRepository = {
       data,
     });
   },
+
+  findByVerificationToken: async (token: string) => {
+    return prisma.users.findFirst({
+      where: { verification_token: token },
+    });
+  },
+
+  updateById: async (userId: number, data: any) => {
+    return prisma.users.update({
+      where: { user_id: userId },
+      data,
+    });
+  },
 };
