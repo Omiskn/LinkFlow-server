@@ -3,12 +3,13 @@ import { userRepository } from "../repositories/user.repository";
 import { AppError } from "../errors/AppError";
 import { hashPassword, comparePassword } from "../utils/hash";
 import { generateToken } from "../utils/jwt";
-import { RegisterUserDTO } from "../types/user";
+import { RegisterUserDTO, UserDTO } from "../types/user";
 import { settingsService } from "./settings.service";
 
 import crypto from "crypto";
 import { emailService } from "./email.service";
 import { env } from "../config/env";
+import { uploadImage } from "../utils/uploadImage";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -115,6 +116,26 @@ export const userService = {
     if (!user) throw new AppError("Invalid token", 400);
 
     return { user: toPublicUser(user) };
+  },
+
+  updateMe: async (
+    userId: number,
+    data: UserDTO,
+    file: Express.Multer.File | undefined,
+  ) => {
+    const user = await userRepository.findById(userId);
+    if (!user) throw new AppError("Invalid token", 400);
+    let imageUrl: string | undefined;
+
+    if (file) imageUrl = await uploadImage(file);
+
+    const updatedUser = await userRepository.updateById(userId, {
+      ...data,
+      profile_image: imageUrl,
+      updated_at: new Date(),
+    });
+
+    return { user: toPublicUser(updatedUser) };
   },
 
   verifyEmail: async (token: string) => {

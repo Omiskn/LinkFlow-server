@@ -37,4 +37,13 @@ export const userController = {
 
     sendSuccess(res, "user Fetched successfully", result, 200);
   },
+
+  updateMe: async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
+
+    if (!userId) return;
+    console.log("file :", req?.file, req.body);
+    const result = await userService.updateMe(userId, req.body, req?.file);
+    sendSuccess(res, "user updated successfully", result, 200);
+  },
 };

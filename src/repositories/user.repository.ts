@@ -26,7 +26,7 @@ export const userRepository = {
     });
   },
 
-  updateById: async (userId: number, data: any) => {
+  updateById: async (userId: number, data: Prisma.usersUpdateInput) => {
     return prisma.users.update({
       where: { user_id: userId },
       data,

@@ -36,7 +36,7 @@ export const env = {
   JWT_SECRET,
   JWT_ISSUER: process.env.JWT_ISSUER?.trim() || "linkflow-server",
   JWT_AUDIENCE: process.env.JWT_AUDIENCE?.trim() || "linkflow-clients",
-  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN?.trim() || "15m",
+  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN?.trim() || "1d",
   CORS_ORIGINS,
   TRUST_PROXY: process.env.TRUST_PROXY === "true",
 };

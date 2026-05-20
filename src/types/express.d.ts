@@ -5,6 +5,7 @@ declare global {
         userId: number;
         jti?: string;
       };
+      file?: Express.Multer.File | undefined;
     }
   }
 }
