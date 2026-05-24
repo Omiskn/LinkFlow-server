@@ -26,15 +26,16 @@ function assertSettingsPatch(patch: UpdateSettingsDTO) {
   });
 }
 
-function buildUpdateInput(patch: UpdateSettingsDTO): Prisma.user_settingsUpdateInput {
+function buildUpdateInput(
+  patch: UpdateSettingsDTO,
+): Prisma.user_settingsUpdateInput {
   const out: Prisma.user_settingsUpdateInput = {};
-  if (patch.theme !== undefined) out.theme = patch.theme.trim();
+  if (patch.theme_mode !== undefined) out.theme_mode = patch.theme_mode.trim();
   if (patch.primary_color !== undefined)
     out.primary_color = patch.primary_color.trim();
   if (patch.font_style !== undefined) out.font_style = patch.font_style.trim();
   if (patch.button_style !== undefined)
     out.button_style = patch.button_style.trim();
-  if (patch.background !== undefined) out.background = patch.background.trim();
   if (patch.language !== undefined) out.language = patch.language.trim();
   return out;
 }
@@ -50,8 +51,10 @@ export const settingsService = {
   },
 
   updateSettings: async (userId: number, patch: UpdateSettingsDTO) => {
+    console.log("hello");
     assertSettingsPatch(patch);
     const data = buildUpdateInput(patch);
+    console.log(data);
     if (Object.keys(data).length === 0) {
       throw new AppError("No valid fields to update", 400);
     }
