@@ -6,3 +6,10 @@ export type RecordClickMetaDTO = {
 };
 
 export type ClickPeriodQuery = "today" | "week" | "month" | "all";
+
+export type GroupBy = "device_type" | "country" | "browser";
+
+export type DateRange = {
+  from?: Date;
+  to?: Date;
+};

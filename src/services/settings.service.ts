@@ -4,7 +4,7 @@ import { settingsRepository } from "../repositories/settings.repository";
 import { UpdateSettingsDTO } from "../types/settings";
 
 const FIELD_MAX: Record<keyof UpdateSettingsDTO, number> = {
-  theme: 20,
+  theme_mode: 20,
   primary_color: 20,
   font_style: 50,
   button_style: 50,

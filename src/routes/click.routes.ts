@@ -8,6 +8,9 @@ const router = Router();
 router.use(authMiddleware);
 
 router.get("/stats", asyncHandler(clickController.stats));
-router.get("/", asyncHandler(clickController.list));
+
+router.get("/grouped", asyncHandler(clickController.grouped));
+
+router.get("/links", asyncHandler(clickController.links));
 
 export default router;

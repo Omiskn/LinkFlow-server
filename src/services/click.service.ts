@@ -1,5 +1,5 @@
 import { AppError } from "../errors/AppError";
-import type { ClickPeriodQuery } from "../types/click";
+import type { ClickPeriodQuery, GroupBy } from "../types/click";
 import { clickRepository } from "../repositories/click.repository";
 
 const MS_DAY = 86_400_000;
@@ -34,18 +34,10 @@ export function periodToRange(period: ClickPeriodQuery): {
 
 export function parseClickPeriod(value: unknown): ClickPeriodQuery {
   const raw = Array.isArray(value) ? value[0] : value;
-  if (
-    raw === "today" ||
-    raw === "week" ||
-    raw === "month" ||
-    raw === "all"
-  ) {
+  if (raw === "today" || raw === "week" || raw === "month" || raw === "all") {
     return raw;
   }
-  throw new AppError(
-    "Invalid period. Use today, week, month, or all.",
-    400,
-  );
+  throw new AppError("Invalid period. Use today, week, month, or all.", 400);
 }
 
 export const clickService = {
@@ -81,35 +73,64 @@ export const clickService = {
     };
   },
 
-  listClicks: async (
+  getGroupedAnalytics: async (
     userId: number,
     period: ClickPeriodQuery,
-    limit: number,
-    offset: number,
+    groupBy: GroupBy,
   ) => {
     const { from, to } = periodToRange(period);
-    const rows = await clickRepository.findManyForUser({
-      userId,
+
+    const data = await clickRepository.groupBy(userId, groupBy, { from, to });
+
+    return data.map((item) => ({
+      value: item[groupBy] ?? "Unknown",
+      clicks: item._count.click_id,
+    }));
+  },
+
+  getLinksAnalytics: async (userId: number, period: ClickPeriodQuery) => {
+    const { from, to } = periodToRange(period);
+
+    const data = await clickRepository.groupByLink(userId, {
       from,
       to,
-      skip: offset,
-      take: limit,
     });
-    const total = await clickRepository.countForUser(userId, { from, to });
-    return {
-      period,
-      total,
-      limit,
-      offset,
-      items: rows.map((row) => ({
-        click_id: row.click_id,
-        link_id: row.link_id,
-        clicked_at: row.clicked_at,
-        country: row.country,
-        device_type: row.device_type,
-        browser: row.browser,
-        link: row.links,
-      })),
-    };
+
+    return data.map((link) => ({
+      title: link.title,
+      clicks: link._count.clicks,
+    }));
   },
+
+  // listClicks: async (
+  //   userId: number,
+  //   period: ClickPeriodQuery,
+  //   limit: number | undefined,
+  //   offset: number,
+  // ) => {
+  //   const { from, to } = periodToRange(period);
+  //   const rows = await clickRepository.findManyForUser({
+  //     userId,
+  //     from,
+  //     to,
+  //     skip: offset,
+  //     take: limit,
+  //   });
+  //   const total = await clickRepository.countForUser(userId, { from, to });
+  //   return {
+  //     period,
+  //     total,
+  //     limit,
+  //     offset,
+  //     items: rows.map((row) => ({
+  //       click_id: row.click_id,
+  //       link_id: row.link_id,
+  //       clicked_at: row.clicked_at,
+  //       country: row.country,
+  //       device_type: row.device_type,
+  //       browser: row.browser,
+  //       link: row.links,
+  //     })),
+  //   };
+  // },
 };
