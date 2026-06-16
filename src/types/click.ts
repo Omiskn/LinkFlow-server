@@ -1,5 +1,5 @@
 /** Optional metadata when recording a public link click (client hints / geo). */
-export type RecordClickMetaDTO = {
+export type ClickMetaDTO = {
   country?: string;
   device_type?: string;
   browser?: string;

@@ -34,8 +34,6 @@ export const authMiddleware = (
       jti: typeof decoded.jti === "string" ? decoded.jti : undefined,
     };
 
-    console.log(req.user);
-
     next();
   } catch (err) {
     if (err instanceof TokenExpiredError) {

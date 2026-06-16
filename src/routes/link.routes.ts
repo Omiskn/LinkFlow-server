@@ -6,10 +6,10 @@ import { authMiddleware } from "../middlewares/auth.middleware";
 const router = Router();
 
 /** No auth — for public profile pages to register a tap before redirect. */
-router.post(
-  "/public/:linkId/click",
-  asyncHandler(linkController.recordClick),
-);
+// router.post(
+//   "/public/:linkId/click",
+//   asyncHandler(linkController.recordClick),
+// );
 
 router.use(authMiddleware);
 

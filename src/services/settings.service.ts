@@ -51,10 +51,8 @@ export const settingsService = {
   },
 
   updateSettings: async (userId: number, patch: UpdateSettingsDTO) => {
-    console.log("hello");
     assertSettingsPatch(patch);
     const data = buildUpdateInput(patch);
-    console.log(data);
     if (Object.keys(data).length === 0) {
       throw new AppError("No valid fields to update", 400);
     }

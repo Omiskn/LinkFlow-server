@@ -1,6 +1,7 @@
 import { AppError } from "../errors/AppError";
-import type { ClickPeriodQuery, GroupBy } from "../types/click";
+import type { ClickMetaDTO, ClickPeriodQuery, GroupBy } from "../types/click";
 import { clickRepository } from "../repositories/click.repository";
+import { capitalize } from "../utils/capitalize";
 
 const MS_DAY = 86_400_000;
 
@@ -41,6 +42,15 @@ export function parseClickPeriod(value: unknown): ClickPeriodQuery {
 }
 
 export const clickService = {
+  create: async (data: ClickMetaDTO, linkId: number) => {
+    await clickRepository.create({
+      country: capitalize(data.country),
+      device_type: capitalize(data.device_type),
+      browser: capitalize(data.browser),
+      links: { connect: { link_id: linkId } },
+    });
+  },
+
   /** Counts: today (UTC day), rolling last 7 days, rolling last 30 days, all time. */
   getStats: async (userId: number) => {
     const todayStart = startOfUtcToday();

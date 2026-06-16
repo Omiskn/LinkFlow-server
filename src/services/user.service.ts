@@ -10,6 +10,7 @@ import crypto from "crypto";
 import { emailService } from "./email.service";
 import { env } from "../config/env";
 import { uploadImage } from "../utils/uploadImage";
+import { linkRepositories } from "../repositories/link.repository";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -34,6 +35,11 @@ function toPublicUser(user: users) {
   return rest;
 }
 
+// function toPublicUserProfile(user: users) {
+//   const { display_name, bio, email, profile_image } = user;
+//   return rest;
+// }
+
 export const userService = {
   register: async (input: RegisterUserDTO) => {
     assertRegisterInput(input);
@@ -41,7 +47,7 @@ export const userService = {
     const username = input.username.trim();
     const email = input.email.trim().toLowerCase();
 
-    const existingUser = await userRepository.findByEmail(email);
+    const existingUser = await userRepository.findUser({ email });
 
     if (existingUser) {
       throw new AppError("Email already exists", 400);
@@ -81,7 +87,7 @@ export const userService = {
       throw new AppError("Invalid credentials", 401);
     }
     const normalizedEmail = email.trim().toLowerCase();
-    const user = await userRepository.findByEmail(normalizedEmail);
+    const user = await userRepository.findUser({ email: normalizedEmail });
 
     if (!user || !user.password_hash) {
       throw new AppError("Invalid credentials", 401);
@@ -110,8 +116,30 @@ export const userService = {
     };
   },
 
+  getUserForPublicProfile: async (username: string) => {
+    const user = await userRepository.findUser({ username });
+    if (!user) throw new AppError("Invalid credentials", 401);
+
+    const { display_name, bio, email, profile_image } = user;
+    const links = await linkRepositories.findLinksForSpecificUser(
+      user.user_id,
+      true,
+    );
+
+    const filteredLinks = links.map((link) => ({
+      id: link.link_id,
+      title: link.title,
+      url: link.url,
+      icon: link.icon,
+    }));
+
+    return {
+      user: { display_name, bio, email, profile_image, links: filteredLinks },
+    };
+  },
+
   getMe: async (userId: number) => {
-    const user = await userRepository.findById(userId);
+    const user = await userRepository.findUser({ user_id: userId });
 
     if (!user) throw new AppError("Invalid token", 400);
 
@@ -123,7 +151,7 @@ export const userService = {
     data: UserDTO,
     file: Express.Multer.File | undefined,
   ) => {
-    const user = await userRepository.findById(userId);
+    const user = await userRepository.findUser({ user_id: userId });
     if (!user) throw new AppError("Invalid token", 400);
     let imageUrl: string | undefined;
 

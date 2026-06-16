@@ -17,9 +17,12 @@ export const linkRepositories = {
     });
   },
 
-  findLinksForSpecificUser: async (userId: number) => {
+  findLinksForSpecificUser: async (
+    userId: number,
+    byActive: boolean = false,
+  ) => {
     return prisma.links.findMany({
-      where: { user_id: userId },
+      where: { user_id: userId, ...(byActive && { is_active: true }) },
       orderBy: [{ position: "asc" }, { link_id: "asc" }],
     });
   },

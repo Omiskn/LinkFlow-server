@@ -5,12 +5,12 @@ import { clickController } from "../controllers/click.controller";
 
 const router = Router();
 
+router.post("/:linkId", asyncHandler(clickController.create));
+
 router.use(authMiddleware);
 
 router.get("/stats", asyncHandler(clickController.stats));
-
 router.get("/grouped", asyncHandler(clickController.grouped));
-
 router.get("/links", asyncHandler(clickController.links));
 
 export default router;

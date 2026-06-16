@@ -46,9 +46,9 @@ export const linkController = {
     sendSuccess(res, "Link deleted successfully.", undefined, 200);
   },
 
-  recordClick: async (req: Request, res: Response) => {
-    const linkId = requireLinkIdParam(req);
-    const result = await linkService.recordClick(linkId, req.body);
-    sendSuccess(res, "Click recorded.", result, 200);
-  },
+  // recordClick: async (req: Request, res: Response) => {
+  //   const linkId = requireLinkIdParam(req);
+  //   const result = await linkService.recordClick(linkId, req.body);
+  //   sendSuccess(res, "Click recorded.", result, 200);
+  // },
 };

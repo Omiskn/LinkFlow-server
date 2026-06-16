@@ -18,6 +18,15 @@ function parseGroupBy(value: unknown): GroupBy {
 }
 
 export const clickController = {
+  create: async (req: Request, res: Response) => {
+    const { linkId } = req.params;
+
+    if (!linkId) throw new AppError("Invalid link id", 400);
+
+    await clickService.create(req.body, +linkId);
+    sendSuccess(res, "clicked");
+  },
+
   stats: async (req: Request, res: Response) => {
     const result = await clickService.getStats(req.user!.userId);
 

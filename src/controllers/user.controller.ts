@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { userService } from "../services/user.service";
 import { RegisterUserDTO } from "../types/user";
 import { sendSuccess } from "../utils/apiResponse";
+import { AppError } from "../errors/AppError";
 
 export const userController = {
   register: async (req: Request, res: Response) => {
@@ -18,7 +19,18 @@ export const userController = {
 
     const result = await userService.login(email, password);
 
-    sendSuccess(res, "Logined", result, 200);
+    sendSuccess(res, "Logined", result);
+  },
+
+  getUserForPublicProfile: async (req: Request, res: Response) => {
+    const username = req.params.username;
+    if (!username) throw new AppError("Invalid username", 400);
+
+    const result = await userService.getUserForPublicProfile(
+      username.toString(),
+    );
+
+    sendSuccess(res, "user fetched successfully.", result);
   },
 
   verifyEmail: async (req: Request, res: Response) => {
@@ -26,24 +38,22 @@ export const userController = {
 
     const result = await userService.verifyEmail(String(token));
 
-    sendSuccess(res, "Email Verified", result, 200);
+    sendSuccess(res, "Email Verified", result);
   },
 
   getMe: async (req: Request, res: Response) => {
     const userId = req.user?.userId;
     if (!userId) return;
-
     const result = await userService.getMe(userId);
 
-    sendSuccess(res, "user Fetched successfully", result, 200);
+    sendSuccess(res, "user Fetched successfully", result);
   },
 
   updateMe: async (req: Request, res: Response) => {
     const userId = req.user?.userId;
 
     if (!userId) return;
-    console.log("file :", req?.file, req.body);
     const result = await userService.updateMe(userId, req.body, req?.file);
-    sendSuccess(res, "user updated successfully", result, 200);
+    sendSuccess(res, "user updated successfully", result);
   },
 };
