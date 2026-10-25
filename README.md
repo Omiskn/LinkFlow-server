@@ -1,6 +1,6 @@
-# LinkFlow Server
+# LinkHub Server
 
-> High-performance, secure REST API backend for the LinkFlow customizable link-in-bio platform. Built with Express 5, TypeScript, Prisma 7, PostgreSQL, and Supabase Storage.
+> High-performance, secure REST API backend for the LinkHub customizable link-in-bio platform. Built with Express 5, TypeScript, Prisma 7, PostgreSQL, and Supabase Storage.
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x%20%7C%206.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
@@ -42,7 +42,7 @@
 
 ## Overview
 
-**LinkFlow Server** provides the foundational REST API powering LinkFlow, a modern link-in-bio platform that lets creators, businesses, and developers host branded landing pages, aggregate their external content, customize visual appearances, and monitor click analytics in real time.
+**LinkHub Server** provides the foundational REST API powering LinkHub, a modern link-in-bio platform that lets creators, businesses, and developers host branded landing pages, aggregate their external content, customize visual appearances, and monitor click analytics in real time.
 
 Engineered with a layered architectural pattern (Controller &rarr; Service &rarr; Repository &rarr; Database), the service guarantees strict boundary isolation, resource ownership validation, automated WebP image transformation, and high-performance click aggregation.
 
@@ -177,7 +177,7 @@ flowchart TD
 ## Repository Structure
 
 ```
-LinkFlow-server/
+LinkHub-server/
 ├── prisma/
 │   └── schema.prisma              # Database schema definitions & generator configs
 ├── prisma.config.ts               # Prisma CLI configuration
@@ -654,8 +654,8 @@ Public CDN URL stored in users.profile_image
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/Omiskn/LinkFlow-server.git
-   cd LinkFlow-server
+   git clone https://github.com/Omiskn/LinkHub-server.git
+   cd LinkHub-server
    ```
 
 2. **Install project dependencies:**
@@ -676,12 +676,12 @@ FRONTEND_URL=http://localhost:5173
 CORS_ORIGINS=http://localhost:5173
 
 # Database (PostgreSQL)
-DATABASE_URL=postgresql://postgres:password@localhost:5432/linkflow?schema=public
+DATABASE_URL=postgresql://postgres:password@localhost:5432/LinkHub?schema=public
 
 # Authentication (JWT)
 JWT_SECRET=super_secret_signing_key_at_least_32_chars_long
-JWT_ISSUER=linkflow-server
-JWT_AUDIENCE=linkflow-clients
+JWT_ISSUER=LinkHub-server
+JWT_AUDIENCE=LinkHub-clients
 JWT_EXPIRES_IN=30d
 
 # Supabase Storage
@@ -701,11 +701,11 @@ EMAIL_PASS=your-gmail-app-password
 | `NODE_ENV` | Runtime environment (`development` / `production`) | No | `development` |
 | `TRUST_PROXY` | Configures Express `trust proxy` when hosted behind a reverse proxy | No | `false` |
 | `FRONTEND_URL` | Base URL used to build email verification callback links | No | `http://localhost:5173` |
-| `CORS_ORIGINS` | Comma-delimited list of permitted CORS origins in production | No (Required in Prod) | `https://linkflow.app` |
+| `CORS_ORIGINS` | Comma-delimited list of permitted CORS origins in production | No (Required in Prod) | `https://LinkHub.app` |
 | `DATABASE_URL` | PostgreSQL connection URI for Prisma ORM | **Yes** | `postgresql://user:pass@host:5432/db` |
 | `JWT_SECRET` | Secret key for JWT signing (Minimum 32 characters) | **Yes** | 256-bit secret string |
-| `JWT_ISSUER` | JWT `iss` claim | No | `linkflow-server` |
-| `JWT_AUDIENCE` | JWT `aud` claim | No | `linkflow-clients` |
+| `JWT_ISSUER` | JWT `iss` claim | No | `LinkHub-server` |
+| `JWT_AUDIENCE` | JWT `aud` claim | No | `LinkHub-clients` |
 | `JWT_EXPIRES_IN` | JWT validity duration | No | `30d` |
 | `SUPABASE_URL` | Supabase API URL for object storage client | **Yes** | `https://xyz.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase administrative key for storage bucket uploads | **Yes** | Service role token |
