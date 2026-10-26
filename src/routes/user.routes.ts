@@ -15,6 +15,9 @@ router.post("/register", asyncHandler(userController.register));
 
 router.post("/login", asyncHandler(userController.login));
 
+router.post("/google", asyncHandler(userController.googleLogin));
+
+
 router.get("/verify-email", asyncHandler(userController.verifyEmail));
 
 router.get("/me", authMiddleware, asyncHandler(userController.getMe));

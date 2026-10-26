@@ -31,7 +31,9 @@ app.get("/api", (_req, res) => {
         users: [
           "POST /api/users/register",
           "POST /api/users/login",
+          "POST /api/users/google",
         ],
+
         links: [
           "POST /api/links/public/:linkId/click (no auth)",
           "GET /api/links",

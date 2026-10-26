@@ -22,6 +22,18 @@ export const userController = {
     sendSuccess(res, "Logined", result);
   },
 
+  googleLogin: async (req: Request, res: Response) => {
+    const { idToken } = req.body;
+    if (!idToken || typeof idToken !== "string") {
+      throw new AppError("idToken is required", 400);
+    }
+
+    const result = await userService.googleLogin(idToken);
+
+    sendSuccess(res, "Google login successful", result, 200);
+  },
+
+
   getUserForPublicProfile: async (req: Request, res: Response) => {
     const username = req.params.username;
     if (!username) throw new AppError("Invalid username", 400);
