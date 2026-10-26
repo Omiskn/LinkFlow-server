@@ -37,7 +37,9 @@ app.get("/api", (_req, res) => {
         links: [
           "POST /api/links/public/:linkId/click (no auth)",
           "GET /api/links",
+          "PUT /api/links/reorder",
           "GET /api/links/:linkId",
+
           "POST /api/links",
           "PATCH /api/links/:linkId",
           "DELETE /api/links/:linkId",

@@ -90,4 +90,35 @@ export const linkRepositories = {
       return link;
     });
   },
+
+  reorderLinks: async (userId: number, linkIds: number[]) => {
+    return prisma.$transaction(async (tx) => {
+      const existing = await tx.links.findMany({
+        where: {
+          user_id: userId,
+          link_id: { in: linkIds },
+        },
+        select: { link_id: true },
+      });
+
+      if (existing.length !== linkIds.length) {
+        throw new Error("One or more link IDs are invalid or unauthorized");
+      }
+
+      await Promise.all(
+        linkIds.map((linkId, index) =>
+          tx.links.update({
+            where: { link_id: linkId },
+            data: { position: index, updated_at: new Date() },
+          })
+        )
+      );
+
+      return tx.links.findMany({
+        where: { user_id: userId },
+        orderBy: [{ position: "asc" }, { link_id: "asc" }],
+      });
+    });
+  },
 };
+

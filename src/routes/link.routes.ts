@@ -13,7 +13,9 @@ const router = Router();
 
 router.use(authMiddleware);
 
+router.put("/reorder", asyncHandler(linkController.reorderLinks));
 router.get("/", asyncHandler(linkController.listLinks));
+
 router.get("/:linkId", asyncHandler(linkController.getLink));
 router.post("/", asyncHandler(linkController.addLink));
 router.patch("/:linkId", asyncHandler(linkController.updateLink));
