@@ -53,6 +53,19 @@ export const userController = {
     sendSuccess(res, "Email Verified", result);
   },
 
+  forgotPassword: async (req: Request, res: Response) => {
+    const { email } = req.body;
+    const result = await userService.forgotPassword(email);
+    sendSuccess(res, result.message, result, 200);
+  },
+
+  resetPassword: async (req: Request, res: Response) => {
+    const { token, newPassword } = req.body;
+    const result = await userService.resetPassword(token, newPassword);
+    sendSuccess(res, result.message, result, 200);
+  },
+
+
   getMe: async (req: Request, res: Response) => {
     const userId = req.user?.userId;
     if (!userId) return;

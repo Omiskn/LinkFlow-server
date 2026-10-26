@@ -32,7 +32,10 @@ app.get("/api", (_req, res) => {
           "POST /api/users/register",
           "POST /api/users/login",
           "POST /api/users/google",
+          "POST /api/users/forgot-password",
+          "POST /api/users/reset-password",
         ],
+
 
         links: [
           "POST /api/links/public/:linkId/click (no auth)",

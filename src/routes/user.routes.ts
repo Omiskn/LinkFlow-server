@@ -20,6 +20,17 @@ router.post("/google", asyncHandler(userController.googleLogin));
 
 router.get("/verify-email", asyncHandler(userController.verifyEmail));
 
+router.post(
+  "/forgot-password",
+  asyncHandler(userController.forgotPassword),
+);
+
+router.post(
+  "/reset-password",
+  asyncHandler(userController.resetPassword),
+);
+
+
 router.get("/me", authMiddleware, asyncHandler(userController.getMe));
 
 router.patch(

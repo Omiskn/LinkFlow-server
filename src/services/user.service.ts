@@ -12,6 +12,8 @@ import { env } from "../config/env";
 import { uploadImage } from "../utils/uploadImage";
 import { linkRepositories } from "../repositories/link.repository";
 import { googleAuthService } from "./googleAuth.service";
+import { passwordResetRepository } from "../repositories/passwordReset.repository";
+
 
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -266,5 +268,92 @@ export const userService = {
       token,
     };
   },
+
+  forgotPassword: async (email: string) => {
+    if (typeof email !== "string" || !EMAIL_RE.test(email.trim())) {
+      throw new AppError("Invalid email address", 400);
+    }
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await userRepository.findUser({ email: normalizedEmail });
+
+    if (!user) {
+      // Prevent email enumeration
+      return {
+        message:
+          "If an account with that email exists, a password reset link has been sent.",
+      };
+    }
+
+    // Delete previous tokens for this user
+    await passwordResetRepository.deleteByUserId(user.user_id);
+
+    // Generate crypto token and store its sha256 hash
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
+
+    const expireAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await passwordResetRepository.create({
+      token: tokenHash,
+      user_id: user.user_id,
+      expire_at: expireAt,
+    });
+
+    const resetLink = `${env.FRONTEND_URL}/reset_password?token=${rawToken}`;
+
+    try {
+      await emailService.sendPasswordResetEmail(user.email, resetLink);
+    } catch (error) {
+      console.error("Failed to dispatch password reset email:", error);
+    }
+
+    return {
+      message:
+        "If an account with that email exists, a password reset link has been sent.",
+    };
+  },
+
+  resetPassword: async (rawToken: string, newPassword: string) => {
+    if (!rawToken || typeof rawToken !== "string") {
+      throw new AppError("Invalid or missing reset token", 400);
+    }
+    if (typeof newPassword !== "string" || newPassword.length < 10) {
+      throw new AppError("Password must be at least 10 characters", 400);
+    }
+
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(rawToken.trim())
+      .digest("hex");
+
+    const record = await passwordResetRepository.findByToken(tokenHash);
+
+    if (!record) {
+      throw new AppError("Invalid or expired password reset link", 400);
+    }
+
+    if (record.expire_at && record.expire_at < new Date()) {
+      await passwordResetRepository.deleteByToken(tokenHash);
+      throw new AppError("Password reset link has expired", 400);
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+
+    // Update password and invalidate all reset tokens for user
+    await userRepository.updateById(record.user_id, {
+      password_hash: hashedPassword,
+      updated_at: new Date(),
+    });
+
+    await passwordResetRepository.deleteByUserId(record.user_id);
+
+    return {
+      message: "Password has been successfully updated. You can now login.",
+    };
+  },
 };
+
 
