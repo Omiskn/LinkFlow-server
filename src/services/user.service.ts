@@ -13,6 +13,8 @@ import { uploadImage } from "../utils/uploadImage";
 import { linkRepositories } from "../repositories/link.repository";
 import { googleAuthService } from "./googleAuth.service";
 import { passwordResetRepository } from "../repositories/passwordReset.repository";
+import "multer";
+
 
 
 

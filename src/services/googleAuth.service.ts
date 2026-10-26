@@ -19,9 +19,10 @@ export const googleAuthService = {
 
     // 1. Try google-auth-library if installed
     try {
-      // Dynamic import to avoid crash if optional library is missing
-      const googleAuth = await import("google-auth-library");
+      // @ts-ignore - optional dependency
+      const googleAuth: any = await import("google-auth-library");
       if (googleAuth?.OAuth2Client) {
+
         const client = new googleAuth.OAuth2Client(env.GOOGLE_CLIENT_ID);
         const ticket = await client.verifyIdToken({
           idToken: trimmedToken,
