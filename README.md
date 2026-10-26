@@ -393,7 +393,54 @@ Authenticates credentials and returns a signed JWT. Requires verified email stat
   }
   ```
 
+#### `POST /api/users/google`
+Authenticates with Google OAuth. Verifies Google ID token, performs safe account linking, auto-provisions new users if not found, and returns a signed JWT.
+- **Auth:** None (Rate-limited: 20 requests per 3 seconds)
+- **Request Body:**
+  ```json
+  {
+    "idToken": "eyJhbGciOiJSUzI1NiIsImtpZCI6..."
+  }
+  ```
+- **Response (200 OK):** User object and JWT token.
+
+#### `POST /api/users/forgot-password`
+Requests a password reset email. Employs cryptographically secure random tokens stored as SHA-256 hashes, with non-enumerating generic response.
+- **Auth:** None (Rate-limited)
+- **Request Body:**
+  ```json
+  {
+    "email": "user@example.com"
+  }
+  ```
+- **Response (200 OK):**
+  ```json
+  {
+    "success": true,
+    "message": "If an account with that email exists, a password reset link has been sent."
+  }
+  ```
+
+#### `POST /api/users/reset-password`
+Sets a new password using a valid, single-use, non-expired reset token.
+- **Auth:** None (Rate-limited)
+- **Request Body:**
+  ```json
+  {
+    "token": "32-byte-hex-token",
+    "newPassword": "NewStrongPassword123!"
+  }
+  ```
+- **Response (200 OK):**
+  ```json
+  {
+    "success": true,
+    "message": "Password has been successfully updated. You can now login."
+  }
+  ```
+
 #### `GET /api/users/verify-email`
+
 Verifies account ownership using the token emailed during registration.
 - **Auth:** None
 - **Query Parameters:** `token` (String, Required)
@@ -461,10 +508,19 @@ All endpoints under `/api/links` require a valid `Authorization: Bearer <token>`
 | `GET` | `/api/links` | Returns all links owned by the user, sorted by `position ASC, link_id ASC`. |
 | `GET` | `/api/links/:linkId` | Fetches a single link verifying tenant ownership. |
 | `POST` | `/api/links` | Creates a new link. Auto-increments position if not specified. |
+| `PUT` | `/api/links/reorder` | Atomically reorders links array via a database transaction. |
 | `PATCH` | `/api/links/:linkId` | Partially updates a link verifying tenant ownership. |
 | `DELETE` | `/api/links/:linkId` | Deletes a link and cascades associated click metrics. |
 
+#### Reorder Links Request (`PUT /api/links/reorder`)
+```json
+{
+  "linkIds": [12, 10, 15]
+}
+```
+
 #### Create Link Request (`POST /api/links`)
+
 ```json
 {
   "title": "My Portfolio",
@@ -707,7 +763,9 @@ EMAIL_PASS=your-gmail-app-password
 | `JWT_ISSUER` | JWT `iss` claim | No | `LinkHub-server` |
 | `JWT_AUDIENCE` | JWT `aud` claim | No | `LinkHub-clients` |
 | `JWT_EXPIRES_IN` | JWT validity duration | No | `30d` |
+| `GOOGLE_CLIENT_ID` | Google OAuth Client ID for ID token audience validation | No (Optional) | `16588090...apps.googleusercontent.com` |
 | `SUPABASE_URL` | Supabase API URL for object storage client | **Yes** | `https://xyz.supabase.co` |
+
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase administrative key for storage bucket uploads | **Yes** | Service role token |
 | `EMAIL_USER` | SMTP username for email verification dispatch | **Yes** | `user@gmail.com` |
 | `EMAIL_PASS` | SMTP application password / credentials | **Yes** | App password |
