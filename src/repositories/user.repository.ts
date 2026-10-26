@@ -33,6 +33,13 @@ export const userRepository = {
     });
   },
 
+  findByGoogleId: async (googleId: string) => {
+    return prisma.users.findFirst({
+      where: { google_id: googleId },
+    });
+  },
+
+
   updateById: async (userId: number, data: Prisma.usersUpdateInput) => {
     return prisma.users.update({
       where: { user_id: userId },

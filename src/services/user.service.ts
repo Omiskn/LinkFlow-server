@@ -11,6 +11,8 @@ import { emailService } from "./email.service";
 import { env } from "../config/env";
 import { uploadImage } from "../utils/uploadImage";
 import { linkRepositories } from "../repositories/link.repository";
+import { googleAuthService } from "./googleAuth.service";
+
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -187,4 +189,82 @@ export const userService = {
       message: "Email verified successfully",
     };
   },
+
+  googleLogin: async (idToken: string) => {
+    const claims = await googleAuthService.verifyIdToken(idToken);
+    const email = claims.email.trim().toLowerCase();
+
+    // 1. Check if user already exists by google_id
+    let user = await userRepository.findByGoogleId(claims.googleId);
+
+    if (user) {
+      user = await userRepository.updateById(user.user_id, {
+        last_login_at: new Date(),
+        updated_at: new Date(),
+      });
+      await settingsService.ensureRow(user.user_id);
+      const token = generateToken(user.user_id);
+      return { user: toPublicUser(user), token };
+    }
+
+    // 2. Check if user exists by email (safe linking because email is verified by Google)
+    const existingByEmail = await userRepository.findUser({ email });
+
+    if (existingByEmail) {
+      user = await userRepository.updateById(existingByEmail.user_id, {
+        google_id: claims.googleId,
+        is_verified: true,
+        last_login_at: new Date(),
+        updated_at: new Date(),
+        profile_image: existingByEmail.profile_image || claims.picture || null,
+        display_name: existingByEmail.display_name || claims.name || existingByEmail.username,
+      });
+
+      await settingsService.ensureRow(user.user_id);
+      const token = generateToken(user.user_id);
+      return { user: toPublicUser(user), token };
+    }
+
+    // 3. User does not exist, create new user
+    let baseUsername = (claims.name || email.split("@")[0] || "user")
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, "")
+      .slice(0, 30);
+
+    if (baseUsername.length < 2) {
+      baseUsername = `user_${claims.googleId.slice(-6)}`;
+    }
+
+    let username = baseUsername;
+    let counter = 1;
+    while (await userRepository.findUser({ username })) {
+      const suffix = Math.floor(1000 + Math.random() * 9000);
+      username = `${baseUsername.slice(0, 25)}_${suffix}`;
+      counter++;
+      if (counter > 10) {
+        username = `user_${Date.now().toString().slice(-8)}`;
+        break;
+      }
+    }
+
+    user = await userRepository.create({
+      username,
+      email,
+      provider: "google",
+      google_id: claims.googleId,
+      display_name: claims.name || username,
+      profile_image: claims.picture || null,
+      is_verified: true,
+      last_login_at: new Date(),
+    });
+
+    await settingsService.ensureRow(user.user_id);
+    const token = generateToken(user.user_id);
+
+    return {
+      user: toPublicUser(user),
+      token,
+    };
+  },
 };
+
