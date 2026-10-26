@@ -9,7 +9,6 @@ datasource db {
 
 model clicks {
   click_id    Int       @id @default(autoincrement())
-
   link_id     Int
   clicked_at  DateTime? @default(now()) @db.Timestamp(6)
   country     String?   @db.VarChar(100)
@@ -47,21 +46,30 @@ model user_settings {
 }
 
 model users {
-  user_id              Int            @id @default(autoincrement())
-  username             String         @unique @db.VarChar(50)
-  email                String         @unique @db.VarChar(100)
+  user_id              Int                    @id @default(autoincrement())
+  username             String                 @unique @db.VarChar(50)
+  email                String                 @unique @db.VarChar(100)
   password_hash        String?
-  provider             String?        @default("local") @db.VarChar(20)
-  google_id            String?        @db.VarChar(100)
-  display_name         String?        @db.VarChar(100)
+  provider             String?                @default("local") @db.VarChar(20)
+  google_id            String?                @unique @db.VarChar(100)
+  display_name         String?                @db.VarChar(100)
   bio                  String?
   profile_image        String?
-  is_verified          Boolean?       @default(false)
-  last_login_at        DateTime?      @db.Timestamp(6)
-  created_at           DateTime?      @default(now()) @db.Timestamp(6)
-  updated_at           DateTime?      @default(now()) @db.Timestamp(6)
-  verification_token   String?        @db.VarChar(200)
-  verification_expires DateTime?      @db.Timestamp(6)
+  is_verified          Boolean?               @default(false)
+  last_login_at        DateTime?              @db.Timestamp(6)
+  created_at           DateTime?              @default(now()) @db.Timestamp(6)
+  updated_at           DateTime?              @default(now()) @db.Timestamp(6)
+  verification_token   String?                @db.VarChar(200)
+  verification_expires DateTime?              @db.Timestamp(6)
+  profile_image_name   String?
   links                links[]
+  password_reset_token password_reset_token[]
   user_settings        user_settings?
+}
+
+model password_reset_token {
+  token     String    @id @db.VarChar(100)
+  expire_at DateTime? @default(now()) @db.Timestamp(6)
+  user_id   Int
+  users     users     @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user")
 }
