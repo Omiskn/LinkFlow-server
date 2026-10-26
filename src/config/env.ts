@@ -39,4 +39,9 @@ export const env = {
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN?.trim() || "30d",
   CORS_ORIGINS,
   TRUST_PROXY: process.env.TRUST_PROXY === "true",
+  GOOGLE_CLIENT_ID:
+    process.env.GOOGLE_CLIENT_ID?.trim() ||
+    process.env.VITE_GOOGLE_CLIENT_ID?.trim() ||
+    "",
 };
+
