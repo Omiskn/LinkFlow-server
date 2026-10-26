@@ -5,7 +5,7 @@
   "scripts": {
     "test": "ts-node src/__tests__/features.test.ts",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
     "start": "node dist/server.js"
   },
   "keywords": [],
@@ -18,7 +18,7 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.1.0",
-    "@types/node": "^25.8.0",
+    "@types/node": "^25.9.9",
     "@types/nodemailer": "^8.0.0",
     "@types/pg": "^8.20.0",
     "nodemon": "^3.1.14",
