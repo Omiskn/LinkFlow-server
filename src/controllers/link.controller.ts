@@ -46,6 +46,13 @@ export const linkController = {
     sendSuccess(res, "Link deleted successfully.", undefined, 200);
   },
 
+  reorderLinks: async (req: Request, res: Response) => {
+    const { linkIds } = req.body;
+    const result = await linkService.reorderLinks(req.user!.userId, linkIds);
+    sendSuccess(res, "Links reordered successfully.", result, 200);
+  },
+
+
   // recordClick: async (req: Request, res: Response) => {
   //   const linkId = requireLinkIdParam(req);
   //   const result = await linkService.recordClick(linkId, req.body);

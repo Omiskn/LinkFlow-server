@@ -173,6 +173,47 @@ export const linkService = {
     await linkRepositories.deleteLink(linkId);
   },
 
+  reorderLinks: async (userId: number, linkIds: unknown) => {
+    if (!Array.isArray(linkIds) || linkIds.length === 0) {
+      throw new AppError("linkIds must be a non-empty array of numbers", 400);
+    }
+
+    const parsedIds: number[] = [];
+    const seen = new Set<number>();
+
+    for (const item of linkIds) {
+      const id = Number(item);
+      if (!Number.isInteger(id) || id < 1) {
+        throw new AppError("Each link ID must be a positive integer", 400);
+      }
+      if (seen.has(id)) {
+        throw new AppError(
+          "Duplicate link IDs are not allowed in reorder list",
+          400,
+        );
+      }
+      seen.add(id);
+      parsedIds.push(id);
+    }
+
+    try {
+      const updatedRows = await linkRepositories.reorderLinks(
+        userId,
+        parsedIds,
+      );
+      return updatedRows.map(toPublicLink);
+    } catch (err: any) {
+      if (err.message && err.message.includes("unauthorized")) {
+        throw new AppError(
+          "Unauthorized or non-existent link ID provided",
+          403,
+        );
+      }
+      throw err;
+    }
+  },
+
+
   /**
    * Public: inserts a clicks row, increments link.click_count (same transaction),
    * optional body: country, device_type, browser (trimmed / max lengths).
